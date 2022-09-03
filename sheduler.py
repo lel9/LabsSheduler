@@ -1,68 +1,11 @@
+from sheduler_redmine import *
+from sheduler_gitlab import *
 import helpers as h
-import os
-import datetime
 
-def create_project(redmine, config, lab):
-    name = config['Redmine']['project_name_prefix'] + lab['num']
-    description = lab['description']
-    parent_id = config['Redmine']['project_parent_id']
-
-    try:
-        # берем родительский проект (нам нужен его id -- это число)
-        parent_project = redmine.project.get(parent_id)
-
-        # создаем проект лабы
-        # в описании -- условие лабы
-        project = redmine.project.create(
-            name = name,
-            identifier = name.lower(),
-            description = description,
-            parent_id = parent_project.id,
-            is_public = False
-        )
-
-        # добавляем участников -- нашу группу
-        redmine.project_membership.create(
-            project_id = project.id,
-            user_id = config['Redmine']['project_member_group_id'],
-            role_ids = [config['Redmine']['project_member_role_id']]
-        )
-
-        # добавляем в проект доп. файлы с условием лабы
-        for file in lab['files']:
-            redmine.file.create(
-                project_id = project.id,
-                path = file,
-                filename = os.path.basename(file)
-            )
-    except Exception as e:
-        print(e)
-        return 1, None
-    return 0, project
-
-
-def add_task_redmine(redmine, config, project, student, lab):
-    if len(lab['vars']) > 0:
-        vars = lab['vars'] * (int(len(student) / len(lab['vars'])) + 1) # вариантов м.б. меньше, чем студентов
-    else:
-        vars = []
-    try:
-        issue = redmine.issue.create(
-            project_id = project.identifier,
-            subject = config['Redmine']['issue_subject_prefix'] + lab['num'],
-            tracker_id = config['Redmine']['issue_tracker_id'],
-            description = config['Redmine']['issue_descr_prefix'] + vars[student['num']] if vars else '',
-            assigned_to_id = student['redmine_id'],
-            start_date = datetime.date.today(),
-            due_date = datetime.date.today() + datetime.timedelta(days=lab['duration'])
-        )
-    except Exception as e:
-        print(e)
-        return 1, None
-    return 0, issue
-
-
-def shedule_lab(lab_num, duration):
+# mode = 1 -- только редмайн
+# mode = 2 -- только гитлаб
+# mode = 0 -- всё
+def shedule_lab(lab_num, duration, mode):
 
     # читаем конфиги
     err_code, config = h.read_config()
@@ -82,43 +25,60 @@ def shedule_lab(lab_num, duration):
         print('Список студентов успешно прочитан...')
         #print(students)
 
-    # читаем инфу о лабе (общее описание, доп.файлы, варианты)
-    err_code, lab = h.get_lab(config, lab_num)
-    if err_code != 0:
-        print('Ошибка получения информации о лабораторной!')
-        exit(err_code)
-    else:
-        print('Информация о лабораторной успешно прочитана...')
-        #print(lab)
-    lab['duration'] = duration # добавили срок в днях
+    if mode == 0 or mode == 1:
+        # читаем инфу о лабе (общее описание, доп.файлы, варианты)
+        err_code, lab = h.get_lab(config, lab_num)
+        if err_code != 0:
+            print('Ошибка получения информации о лабораторной!')
+            exit(err_code)
+        else:
+            print('Информация о лабораторной успешно прочитана...')
+            #print(lab)
+        lab['duration'] = duration # добавили срок в днях
 
-    # содаем объект для работы с апи редмайна
-    redmine = h.get_redmine(config)
+        # создаем объект для работы с апи редмайна
+        redmine = h.get_redmine(config)
 
-    # создаем проект, один на каждую лабу, в описании проекта будет условие лабы
-    # во вкладке файлов будут доп. файлы
-    # внутри проекта будут задачи для каждого студента, в описании задачи -- вариант
-    err_code, project = create_project(redmine, config, lab)
-    if err_code != 0:
-        print('Ошибка создания проекта в Redmine!')
-        exit(err_code)
-    else:
-        print('Проект в Redmine успешно создан...')
-        #print(project)
+        # создаем проект, один на каждую лабу, в описании проекта будет условие лабы
+        # во вкладке файлов будут доп. файлы
+        # внутри проекта будут задачи для каждого студента, в описании задачи -- вариант
+        err_code, project_rm = create_project(redmine, config, lab)
+        if err_code != 0:
+            print('Ошибка создания проекта в Redmine!')
+            exit(err_code)
+        else:
+            print('Проект в Redmine успешно создан...')
+            #print(project)
+
+    if mode == 0 or mode == 2:
+        # создаем объект для работы с апи гитлаба
+        gitlab = h.get_gitlab(config)
+
+        # создаем подгруппу, одну на каждую лабу
+        # внутри подгруппы будут репозитории для каждого студента
+        err_code, subgroup = create_subgroup(gitlab, config, lab_num)
+        if err_code != 0:
+            print('Ошибка создания проекта в Gitlab!')
+            exit(err_code)
+        else:
+            print('Проект в Gitlab успешно создан...')
 
     # каждому студенту назначаем лабу
     for student in students:
-
-        # добавляем задачу в редмайн
-        err_code, issue = add_task_redmine(redmine, config, project, student, lab)
-        if err_code != 0:
-            print('Ошибка создания задачи в Redmine для студента с id=' + str(student['redmine_id']) + '!')
-        else:
-            print('Задача для студента с id=' + str(student['redmine_id']) + ' успешно добавлена...')
+        if mode == 0 or mode == 1:
+            # добавляем задачу в редмайн
+            err_code, issue = add_task_redmine(redmine, config, project_rm, student, lab)
+            if err_code != 0:
+                print('Ошибка создания задачи в Redmine для студента с id=' + str(student['redmine_id']) + '!')
+            else:
+                print('Задача для студента с id=' + str(student['redmine_id']) + ' успешно добавлена...')
             # print(issue)
 
-        # создаем проект в гитлабе
-        # TODO
-
-        # создаем канал в рокетчате
-        # TODO
+        if mode == 0 or mode == 2:
+            # добавляем проект (репозиторий)
+            err_code, project_gl = add_project_gitlab(gitlab, config, subgroup, student)
+            if err_code != 0:
+                print('Ошибка создания проекта (репо) Gitlab для студента с id=' + str(student['gitlab_id']) + '!')
+            else:
+                print('Проект (репо) для студента с id=' + str(student['gitlab_id']) + ' успешно добавлен...')
+            # print(project_gl)

@@ -1,5 +1,6 @@
 import configparser, codecs
 from redminelib import Redmine
+import gitlab
 from os import listdir
 from os.path import isfile, join
 
@@ -50,6 +51,20 @@ def read_config():
 def get_redmine(config):
     return Redmine(config['Redmine']['redmine_host'],
              key = config['Redmine']['redmine_key'])
+
+
+def get_gitlab(config):
+
+    # private token or personal token authentication (self-hosted GitLab instance)
+    gl = gitlab.Gitlab(url=config['Gitlab']['gitlab_host'],
+                       private_token=config['Gitlab']['gitlab_key'])
+
+    # make an API request to create the gl.user object. This is not required but may be useful
+    # to validate your token authentication. Note that this will not work with job tokens.
+    gl.auth()
+
+    return gl
+
 
 def get_students(config):
     students = []
