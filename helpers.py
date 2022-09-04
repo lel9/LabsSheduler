@@ -26,10 +26,21 @@ def read_config():
             raise AttributeError('project_member_role_id not found')
         if 'issue_subject_prefix' not in config['Redmine']:
             raise AttributeError('issue_subject_prefix not found')
-        if 'issue_tracker_id' not in config['Redmine']:
-            raise AttributeError('issue_tracker_id not found')
         if 'issue_descr_prefix' not in config['Redmine']:
             raise AttributeError('issue_descr_prefix not found')
+
+        if 'Gitlab' not in config:
+            raise AttributeError('Gitlab config not found')
+        if 'gitlab_host' not in config['Gitlab']:
+            raise AttributeError('gitlab_host not found')
+        if 'gitlab_token' not in config['Gitlab']:
+            raise AttributeError('gitlab_token not found')
+        if 'group_parent_id' not in config['Gitlab']:
+            raise AttributeError('group_parent_id not found')
+        if 'group_name_prefix' not in config['Gitlab']:
+            raise AttributeError('group_name_prefix not found')
+        if 'hook_url' not in config['Gitlab']:
+            raise AttributeError('hook_url not found')
 
         if 'Files' not in config:
             raise AttributeError('Files config not found')
@@ -41,29 +52,35 @@ def read_config():
     except AttributeError as ae:
         print('Config error: ')
         print(ae)
-        return 1, ''
+        return 1, None
     except Exception as e:
         print('Unknown error')
         print(e)
-        return 2, ''
+        return 2, None
     return 0, config
 
 def get_redmine(config):
-    return Redmine(config['Redmine']['redmine_host'],
-             key = config['Redmine']['redmine_key'])
+    try:
+        return 0, Redmine(config['Redmine']['redmine_host'],
+                          key = config['Redmine']['redmine_key'])
+    except Exception as e:
+        print(e)
+        return 1, None
 
 
 def get_gitlab(config):
+    try:
+        # private token or personal token authentication (self-hosted GitLab instance)
+        gl = gitlab.Gitlab(url=config['Gitlab']['gitlab_host'],
+                           private_token=config['Gitlab']['gitlab_token'])
 
-    # private token or personal token authentication (self-hosted GitLab instance)
-    gl = gitlab.Gitlab(url=config['Gitlab']['gitlab_host'],
-                       private_token=config['Gitlab']['gitlab_key'])
-
-    # make an API request to create the gl.user object. This is not required but may be useful
-    # to validate your token authentication. Note that this will not work with job tokens.
-    gl.auth()
-
-    return gl
+        # make an API request to create the gl.user object. This is not required but may be useful
+        # to validate your token authentication. Note that this will not work with job tokens.
+        gl.auth()
+    except Exception as e:
+        print(e)
+        return 1, None
+    return 0, gl
 
 
 def get_students(config):

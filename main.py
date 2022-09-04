@@ -1,34 +1,25 @@
-import sys
 import sheduler as sh
+import argparse
 
 # параметры:
-# - номер лабы
-# - длительность
+# - номер лабы (обязательный)
+# - длительность (необязательный)
+# - id трекера в redmine
 # - режим (1 -- только редмайн, 2 -- только гитлаб, 0 -- всё, по умолчанию)
 if __name__ == "__main__":
-    lab_num = None
-    duration = None
-    mode = 0
-    # узнаем номер лабы, которую надо выдать, и её срок в днях
-    # либо они переданы как параметры
-    if len(sys.argv) >= 3:
-        lab_num = sys.argv[1]
-        if sys.argv[2].isdigit() and int(sys.argv[2]) > 0:
-            duration = int(sys.argv[2])
-        else:
-            print('Неверно указан срок выдаваемой лабораторной: это должно быть положительное число!')
-    # либо надо посмотреть расписание выдачи лаб и понять,
-    # нужно ли выдать лабу и если нужно, то какую
-    else:
-        print('Нужно указать номер выдаваемой лабораторной и её срок в днях, например, 01 и 28')
-        # lab_num = get_current_lab_num()
-        # TODO запуск по расписанию
 
-    if len(sys.argv) == 4 and sys.argv[3].isdigit():
-        mode = int(sys.argv[3])
-    if lab_num is not None and duration is not None:
-        sh.shedule_lab(lab_num, duration, mode)
+    parser = argparse.ArgumentParser(description='Параметры запуска:')
+    parser.add_argument('num', type=str, help='ID лабораторной работы, например, 01')
+    parser.add_argument('-d','--duration', type=int, default=14,
+                        help='Длительность лабораторной работы, дни (по-умолчанию 14)')
+    parser.add_argument('-t', '--tracker', type=int, default=2,
+                        help='ID трекера задач в Redmine (по-умолчанию 2 -- Feature)')
+    parser.add_argument('-m', '--mode', type=int, default=0,
+                        help='Режим запуска:\n'
+                             '1 -- выдача только в Redmine,\n'
+                             '2 -- выдача только в Gitlab,\n'
+                             '0 -- выдача во всех системах (по-умолчанию 0)')
+    ns = parser.parse_args()
+    print(ns)
 
-
-
-
+    sh.shedule_lab(ns.num, ns.duration, ns.tracker, ns.mode)
