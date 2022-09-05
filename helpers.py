@@ -24,6 +24,8 @@ def read_config():
             raise AttributeError('project_member_group_id not found')
         if 'project_member_role_id' not in config['Redmine']:
             raise AttributeError('project_member_role_id not found')
+        if 'issue_priority_id' not in config['Redmine']:
+            raise AttributeError('issue_priority_id not found')
         if 'issue_subject_prefix' not in config['Redmine']:
             raise AttributeError('issue_subject_prefix not found')
         if 'issue_descr_prefix' not in config['Redmine']:
@@ -39,6 +41,8 @@ def read_config():
             raise AttributeError('group_parent_id not found')
         if 'group_name_prefix' not in config['Gitlab']:
             raise AttributeError('group_name_prefix not found')
+        if 'project_access_level' not in config['Gitlab']:
+            raise AttributeError('project_access_level not found')
         if 'hook_url' not in config['Gitlab']:
             raise AttributeError('hook_url not found')
 
@@ -97,7 +101,7 @@ def get_students(config):
                     'telegram_id': tg_id.strip(),
                     'rocketchat_id': rc_id.strip(),
                     'redmine_id': int(rm_id.strip()),
-                    'gitlab_id': gl_id.strip(),
+                    'gitlab_id': int(gl_id.strip()),
                     'eu_id': eu_id.strip()
             })
     except Exception as e:

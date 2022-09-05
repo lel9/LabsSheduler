@@ -33,12 +33,12 @@
     * добавить технического пользователя, от имени которого будут добавляться репозитории, создать ему токен доступа к API (User Settings -> Access Tokens, выбрать api), **сохранить себе этот токен, т.к. после закрытия страницы он исчезнет**.
 4. Заполнить файл со списком студентов. Формат .csv, поля разделяются символом табуляции, в первой строке находится заголовок.
     * для получения **redmine_id** в Redmine зайти во вкладку Администрирование -> Пользователи -> выбрать пользователя -> в строке браузера будет id, например для http://studvesna.bmstu.ru/users/8/edit это 8;
-    * **gitlab_un** - это username пользователя в Gitlab. По-умолчанию равен части email пользователя до знака @, для изменения нужно зайти во вкладку User Settings -> Account -> раздел Change username.
+    * для получения **gitlab_id** в Gitlab зайти в меню, Admin -> Users -> нажать на пользователя, в таблице будет ID
 ```
-stud_xx	xxx@student.bmstu.ru	telegram_id	rocketchat_id	redmine_id	gitlab_un	eu_id
-stud_01	kek1@student.bmstu.ru	1	1	8	stud_01	1
-stud_02	kek2@student.bmstu.ru	2	2	10	stud_02	2
-stud_03	kek3@student.bmstu.ru	3	3	11	stud_03	3
+stud_xx	xxx@student.bmstu.ru	telegram_id	rocketchat_id	redmine_id	gitlab_id	eu_id
+stud_01	kek1@student.bmstu.ru	1	1	8	5	1
+stud_02	kek2@student.bmstu.ru	2	2	10	6	2
+stud_03	kek3@student.bmstu.ru	3	3	11	7	3
 ``` 
 
 5. Заполнить настроечный файл settings.ini.  
@@ -75,10 +75,8 @@ project_member_role_id = 4
 # пример названия задачи с таким префиксом: Лабораторная работа №01
 issue_subject_prefix = Лабораторная работа №
 
-# трекер, которому будет принадлежать задача (Bug/Feature/Support/свой трекер);
-# Администрирование -> Трекеры -> выбрать трекер -> в строке браузера будет идентификатор,
-# например для http://studvesna.bmstu.ru/trackers/2/edit это 2
-issue_tracker_id = 2
+# приоритет задачи
+issue_priority_id = 1
 
 # префикс описаний задач
 # в описании задачи указываем вариативную составляющую лабораторной, поэтому префикс может быть, например, "Вариант:"
@@ -101,6 +99,18 @@ group_name_prefix = OII_lab_
 
 # веб-хук, реагирующий на события merge request'а
 hook_url = http://host:port/
+
+# метки, которые надо добавить в проект (доступны при merge request'е)
+# перечисление через запятую в виде название:цвет
+# опционально
+project_labels = плагиат:#ff0000, мод:#0000ff
+
+# роль студента в проекте (30 -- девелопер)
+project_access_level = 30
+
+# дата, когда закончится доступ в формате YYYY-mm-dd
+# опционально
+project_access_expires_at = 2022-12-31
 
 [Files]
 # путь к файлу со списком студентов, созданному на шаге 4

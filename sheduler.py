@@ -86,5 +86,5 @@ def shedule_lab(lab_num, duration, tracker_id, mode):
                 print('Ошибка создания проекта (репозитория) Gitlab для студента с id=' +
                       str(student['gitlab_id']) + '!')
             else:
-                print('Проект (репозитория) для студента с id=' +
+                print('Проект (репозиторий) для студента с id=' +
                       str(student['gitlab_id']) + ' успешно добавлен...')

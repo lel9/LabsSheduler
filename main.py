@@ -12,8 +12,8 @@ if __name__ == "__main__":
     parser.add_argument('num', type=str, help='ID лабораторной работы, например, 01')
     parser.add_argument('-d','--duration', type=int, default=14,
                         help='Длительность лабораторной работы, дни (по-умолчанию 14)')
-    parser.add_argument('-t', '--tracker', type=int, default=2,
-                        help='ID трекера задач в Redmine (по-умолчанию 2 -- Feature)')
+    parser.add_argument('-t', '--tracker', type=int, default=1,
+                        help='ID трекера задач в Redmine (по-умолчанию 1)')
     parser.add_argument('-m', '--mode', type=int, default=0,
                         help='Режим запуска:\n'
                              '1 -- выдача только в Redmine,\n'

@@ -1,6 +1,7 @@
 import os
 import datetime
 
+
 def create_project(redmine, config, lab):
     name = config['Redmine']['project_name_prefix'] + lab['num']
     description = lab['description']
@@ -50,6 +51,7 @@ def add_task_redmine(redmine, config, project, student, lab):
             project_id = project.identifier,
             subject = config['Redmine']['issue_subject_prefix'] + lab['num'],
             tracker_id = lab['tracker_id'],
+            priority_id = config['Redmine']['issue_priority_id'],
             description = config['Redmine']['issue_descr_prefix'] + vars[student['num']] if vars else '',
             assigned_to_id = student['redmine_id'],
             start_date = datetime.date.today(),
