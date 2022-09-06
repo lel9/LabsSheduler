@@ -31,16 +31,5 @@ if __name__ == "__main__":
         print('Ошибка чтения настроечного файла oii.ini!')
         exit(err_code)
     else:
-        print('Настроечный файл успешно прочитан')
-
-        # читаем список студентов
-        err_code, students = h.get_students(config)
-        if err_code != 0:
-            print('Ошибка получения списка студентов!')
-            exit(err_code)
-        else:
-            print('Список студентов успешно прочитан...')
-
-        print(students)
-
-    #sh.shedule_lab(ns.num, ns.duration, ns.tracker, ns.mode, config)
+        print('Настроечный файл успешно прочитан...')
+        sh.shedule_lab(ns.num, ns.duration, ns.tracker, ns.mode, config)
