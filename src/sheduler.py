@@ -2,19 +2,11 @@ from sheduler_redmine import *
 from sheduler_gitlab import *
 import helpers as h
 
+
 # mode = 1 -- только редмайн
 # mode = 2 -- только гитлаб
 # mode = 0 -- всё
-def shedule_lab(lab_num, duration, tracker_id, mode):
-
-    # читаем конфиги
-    err_code, config = h.read_config()
-    if err_code != 0:
-        print('Ошибка чтения настроечного файла settings.ini!')
-        exit(err_code)
-    else:
-        print('Настроечный файл успешно прочитан')
-        #print(config)
+def shedule_lab(lab_num, duration, tracker_id, mode, config):
 
     # читаем список студентов
     err_code, students = h.get_students(config)
@@ -35,6 +27,8 @@ def shedule_lab(lab_num, duration, tracker_id, mode):
             print('Информация о лабораторной успешно прочитана...')
             lab['duration'] = duration # добавили срок в днях
             lab['tracker_id'] = tracker_id # добавили трекер в Redmine
+            if len(lab['vars']) > 0:
+                lab['vars'] *= (int(len(students) / len(lab['vars'])) + 1)  # вариантов м.б. меньше, чем студентов
 
             # создаем объект для работы с апи редмайна
             err_code, redmine = h.get_redmine(config)

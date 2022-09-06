@@ -1,10 +1,13 @@
+import traceback
+
+
 def create_subgroup(gitlab, config, lab_num):
     try:
         subgroup = gitlab.groups.create({'name': config['Gitlab']['group_name_prefix'] + lab_num,
                                          'path': config['Gitlab']['group_name_prefix'] + lab_num,
                                          'parent_id': config['Gitlab']['group_parent_id']})
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return 1, None
     return 0, subgroup
 
@@ -44,12 +47,11 @@ def add_project_gitlab(gitlab, config, subgroup, student):
                 if len(name_and_color) == 2:
                     project.labels.create({'name': name_and_color[0], 'color': name_and_color[1]})
 
-
         # навешиваем веб-хук
         hook = project.hooks.create({'url': config['Gitlab']['hook_url'],
                                      'merge_requests_events': 1,
                                      'push_events': 0})
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return 1, None
     return 0, project

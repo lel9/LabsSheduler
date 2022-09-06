@@ -1,5 +1,6 @@
 import os
 import datetime
+import traceback
 
 
 def create_project(redmine, config, lab):
@@ -36,28 +37,24 @@ def create_project(redmine, config, lab):
                 filename = os.path.basename(file)
             )
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return 1, None
     return 0, project
 
 
 def add_task_redmine(redmine, config, project, student, lab):
-    if len(lab['vars']) > 0:
-        vars = lab['vars'] * (int(len(student) / len(lab['vars'])) + 1) # вариантов м.б. меньше, чем студентов
-    else:
-        vars = []
     try:
         issue = redmine.issue.create(
             project_id = project.identifier,
             subject = config['Redmine']['issue_subject_prefix'] + lab['num'],
             tracker_id = lab['tracker_id'],
             priority_id = config['Redmine']['issue_priority_id'],
-            description = config['Redmine']['issue_descr_prefix'] + vars[student['num']] if vars else '',
+            description = config['Redmine']['issue_descr_prefix'] + lab['vars'][student['num']] if vars else '',
             assigned_to_id = student['redmine_id'],
             start_date = datetime.date.today(),
             due_date = datetime.date.today() + datetime.timedelta(days=lab['duration'])
         )
     except Exception as e:
-        print(e)
+        traceback.print_exc()
         return 1, None
     return 0, issue

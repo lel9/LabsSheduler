@@ -1,5 +1,6 @@
 import sheduler as sh
 import argparse
+import helpers as h
 
 # параметры:
 # - номер лабы (обязательный)
@@ -19,7 +20,27 @@ if __name__ == "__main__":
                              '1 -- выдача только в Redmine,\n'
                              '2 -- выдача только в Gitlab,\n'
                              '0 -- выдача во всех системах (по-умолчанию 0)')
+    parser.add_argument('-s', '--settings', type=str, default='oii.ini',
+                        help='Путь к настроечному файлу (по-умолчанию ./oii.ini)')
     ns = parser.parse_args()
     print(ns)
 
-    sh.shedule_lab(ns.num, ns.duration, ns.tracker, ns.mode)
+    # читаем конфиги
+    err_code, config = h.read_config(ns.settings)
+    if err_code != 0:
+        print('Ошибка чтения настроечного файла oii.ini!')
+        exit(err_code)
+    else:
+        print('Настроечный файл успешно прочитан')
+
+        # читаем список студентов
+        err_code, students = h.get_students(config)
+        if err_code != 0:
+            print('Ошибка получения списка студентов!')
+            exit(err_code)
+        else:
+            print('Список студентов успешно прочитан...')
+
+        print(students)
+
+    #sh.shedule_lab(ns.num, ns.duration, ns.tracker, ns.mode, config)
