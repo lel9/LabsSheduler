@@ -49,7 +49,7 @@ def add_task_redmine(redmine, config, project, student, lab):
             subject = config['Redmine']['issue_subject_prefix'] + lab['num'],
             tracker_id = lab['tracker_id'],
             priority_id = config['Redmine']['issue_priority_id'],
-            description = config['Redmine']['issue_descr_prefix'] + lab['vars'][student['num']] if vars else '',
+            description = config['Redmine']['issue_descr_prefix'] + lab['vars'][student['num']] if lab['vars'] else '',
             assigned_to_id = student['redmine_id'],
             start_date = datetime.date.today(),
             due_date = datetime.date.today() + datetime.timedelta(days=lab['duration'])
