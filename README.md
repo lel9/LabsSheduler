@@ -8,6 +8,7 @@
    * ID лабораторной работы;
    * длительность лабораторной работы (количество дней, отводимых на выполнение);
    * ID трекера задачи в Redmine;
+   * ID группы в Redmine, всем студентам которой надо выдать лабораторную;
    * режим:
        * 1 -- выдача лабораторной работы только в Redmine;
        * 2 -- выдача лабораторной работы только в Gitlab;
@@ -32,17 +33,8 @@
     * добавить родительскую группу репозиториев, например, OII_2022-2023;
     * добавить пользователей-студентов;
     * добавить технического пользователя, от имени которого будут добавляться репозитории, создать ему токен доступа к API (User Settings -> Access Tokens, выбрать api), **сохранить себе этот токен, т.к. после закрытия страницы он исчезнет**.
-4. Заполнить файл со списком студентов. Формат .csv, поля разделяются символом табуляции, в первой строке находится заголовок.
-    * для получения **redmine_id** в Redmine зайти во вкладку Администрирование -> Пользователи -> выбрать пользователя -> в строке браузера будет id, например для http://studvesna.bmstu.ru/users/8/edit это 8;
-    * для получения **gitlab_id** в Gitlab зайти в меню, Admin -> Users -> нажать на пользователя, в таблице будет ID
-```
-stud_xx	xxx@student.bmstu.ru	telegram_id	rocketchat_id	redmine_id	gitlab_id	eu_id
-stud_01	kek1@student.bmstu.ru	1	1	8	5	1
-stud_02	kek2@student.bmstu.ru	2	2	10	6	2
-stud_03	kek3@student.bmstu.ru	3	3	11	7	3
-``` 
 
-5. Заполнить настроечный файл settings.ini.  
+4. Заполнить настроечный файл settings.ini.  
 ```
 [Redmine]  
 # хост, где запущен Redmine
@@ -114,9 +106,6 @@ project_access_level = 30
 project_access_expires_at = 2022-12-31
 
 [Files]
-# путь к файлу со списком студентов, созданному на шаге 4
-students = /path/to/students/students.csv
-
 # путь к директории, где будут храниться условия лабораторных работ
 labs_dir = /path/to/labs
 ```
@@ -158,19 +147,20 @@ labs_dir = /path/to/labs
 2. Запустить скрипт main.py. Доступна подсказка:
 ```
 > python3 main.py -h
-usage: main.py [-h] [-d DURATION] [-t TRACKER] [-m MODE] num                   
+usage: main.py [-h] [-d DURATION] [-t TRACKER] [-m MODE] num group_id                  
                                                                                
 Параметры запуска:                                                             
                                                                                
 positional arguments:                                                          
-  num                   ID лабораторной работы, например, 01                   
+  num                   ID лабораторной работы, например, 01       
+  group_id              ID группы студентов в Redmine, например, 9           
                                                                                
 optional arguments:                                                            
   -h, --help            show this help message and exit                        
   -d DURATION, --duration DURATION                                             
                         Длительность лабораторной работы, дни (по-умолчанию 14)
   -t TRACKER, --tracker TRACKER                                                
-                        ID трекера задач в Redmine (по-умолчанию 2 -- Feature)
+                        ID трекера задач в Redmine (по-умолчанию 1)
   -m MODE, --mode MODE  
                         Режим запуска: 
                         1 -- выдача только в Redmine, 
@@ -180,4 +170,4 @@ optional arguments:
                         Путь к настроечному файлу (по-умолчанию ./settings.ini)
 
 ```
-Пример запуска: ```python3 ./src/main.py 01 -m 0 -d 28 -t 5 -s ./settings/oii.ini```
+Пример запуска: ```python3 ./src/main.py 01 9 -m 0 -d 28 -t 5 -s ./settings/oii.ini```

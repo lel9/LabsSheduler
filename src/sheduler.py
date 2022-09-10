@@ -6,10 +6,22 @@ import helpers as h
 # mode = 1 -- только редмайн
 # mode = 2 -- только гитлаб
 # mode = 0 -- всё
-def shedule_lab(lab_num, duration, tracker_id, mode, config):
+def shedule_lab(lab_num, duration, tracker_id, group_id, mode, config):
+
+    # создаем объект для работы с апи редмайна
+    err_code, redmine = h.get_redmine(config)
+    if err_code != 0:
+        print('Ошибка доступа к Redmine!')
+        return
+
+    # создаем объект для работы с апи гитлаба
+    err_code, gitlab = h.get_gitlab(config)
+    if err_code != 0:
+        print('Ошибка доступа к Gitlab!')
+        return
 
     # читаем список студентов
-    err_code, students = h.get_students(config)
+    err_code, students = h.get_students(group_id, redmine, gitlab)
     if err_code != 0:
         print('Ошибка получения списка студентов!')
         exit(err_code)
@@ -30,36 +42,26 @@ def shedule_lab(lab_num, duration, tracker_id, mode, config):
             if len(lab['vars']) > 0:
                 lab['vars'] *= (int(len(students) / len(lab['vars'])) + 1)  # вариантов м.б. меньше, чем студентов
 
-            # создаем объект для работы с апи редмайна
-            err_code, redmine = h.get_redmine(config)
+            # создаем проект, один на каждую лабу, в описании проекта будет условие лабы
+            # во вкладке файлов будут доп. файлы
+            # внутри проекта будут задачи для каждого студента, в описании задачи -- вариант
+            err_code, project_rm = create_project(redmine, config, lab)
             if err_code != 0:
-                print('Ошибка доступа к Redmine!')
+                print('Ошибка создания проекта в Redmine!')
             else:
-                # создаем проект, один на каждую лабу, в описании проекта будет условие лабы
-                # во вкладке файлов будут доп. файлы
-                # внутри проекта будут задачи для каждого студента, в описании задачи -- вариант
-                err_code, project_rm = create_project(redmine, config, lab)
-                if err_code != 0:
-                    print('Ошибка создания проекта в Redmine!')
-                else:
-                    redmine_success = 1
-                    print('Проект в Redmine успешно создан...')
+                redmine_success = 1
+                print('Проект в Redmine успешно создан...')
 
     gitlab_success = 0
     if mode == 0 or mode == 2:
-        # создаем объект для работы с апи гитлаба
-        err_code, gitlab = h.get_gitlab(config)
+        # создаем подгруппу, одну на каждую лабу
+        # внутри подгруппы будут репозитории для каждого студента
+        err_code, subgroup = create_subgroup(gitlab, config, lab_num)
         if err_code != 0:
-            print('Ошибка доступа к Gitlab!')
+            print('Ошибка создания подгруппы в Gitlab!')
         else:
-            # создаем подгруппу, одну на каждую лабу
-            # внутри подгруппы будут репозитории для каждого студента
-            err_code, subgroup = create_subgroup(gitlab, config, lab_num)
-            if err_code != 0:
-                print('Ошибка создания подгруппы в Gitlab!')
-            else:
-                gitlab_success = 1
-                print('Подгруппа в Gitlab успешно создана...')
+            gitlab_success = 1
+            print('Подгруппа в Gitlab успешно создана...')
 
     # каждому студенту назначаем лабу
     for student in students:

@@ -51,8 +51,6 @@ def read_config(path):
 
         if 'Files' not in config:
             raise AttributeError('Files config not found')
-        if 'students' not in config['Files']:
-            raise AttributeError('students not found')
         if 'labs_dir' not in config['Files']:
             raise AttributeError('labs_dir not found')
 
@@ -90,11 +88,26 @@ def get_gitlab(config):
     return 0, gl
 
 
-def get_students(config):
+def get_students(group_id, redmine, gitlab):
     students = []
-    file = config['Files']['students']
     try:
-        with open(file) as f:
+        group = redmine.group.get(group_id, include=['memberships', 'users'])
+        for count, user in enumerate(group.users):
+            rmuser = redmine.user.get(user.id)
+            glusers = gitlab.users.list(username=rmuser.login)
+            if len(glusers) == 0:
+                print('Пользователь ' + rmuser.login + ' не найден в Gitlab!')
+            else:
+                students.append({
+                    'num': count,
+                    'stud_id': rmuser.login,
+                    #'telegram_id': tg_id.strip(),
+                    #'rocketchat_id': rc_id.strip(),
+                    'redmine_id': rmuser.id,
+                    'gitlab_id': glusers[0].id,
+                    #'eu_id': eu_id.strip()
+                })
+        '''with open(file) as f:
             f.readline() # пропускаем заголовок
             for count, line in enumerate(f.readlines()):
                 stud_id, mail, tg_id, rc_id, rm_id, gl_id, eu_id = line.split('\t')
@@ -106,7 +119,7 @@ def get_students(config):
                     'redmine_id': int(rm_id.strip()),
                     'gitlab_id': int(gl_id.strip()),
                     'eu_id': eu_id.strip()
-            })
+            })'''
     except Exception as e:
         traceback.print_exc()
         return 1, []
